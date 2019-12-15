@@ -1,10 +1,15 @@
 package configor
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
+	"path"
 	"reflect"
 	"regexp"
+	"strings"
 	"time"
 )
 
@@ -85,6 +90,21 @@ func (configor *Configor) Load(config interface{}, files ...string) (err error) 
 	if !defaultValue.CanAddr() {
 		return fmt.Errorf("Config %v should be addressable", config)
 	}
+
+	////////配置样本文件不存在，创建配置样本
+	fileSuffix := path.Ext(files[0])
+	filenameOnly := strings.TrimSuffix(files[0], fileSuffix)
+	examplefile := filenameOnly + ".example" + fileSuffix
+	if !FileIsExist(examplefile) {
+		tmpCnf := config
+		configor.processTags(tmpCnf)
+		data, _ := json.Marshal(&tmpCnf)
+		var str bytes.Buffer
+		_ = json.Indent(&str, []byte(data), "", "    ")
+
+		ioutil.WriteFile(examplefile, str.Bytes(), 0644)
+	}
+	/////////////
 	err, _ = configor.load(config, false, files...)
 
 	if configor.Config.AutoReload {

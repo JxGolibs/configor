@@ -345,3 +345,8 @@ func (configor *Configor) load(config interface{}, watchMode bool, files ...stri
 
 	return err, true
 }
+
+func FileIsExist(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil || os.IsExist(err)
+}
