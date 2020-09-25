@@ -86,11 +86,6 @@ func (configor *Configor) GetErrorOnUnmatchedKeys() bool {
 
 // Load will unmarshal configurations to struct from files that you provide
 func (configor *Configor) Load(config interface{}, files ...string) (err error) {
-	defaultValue := reflect.Indirect(reflect.ValueOf(config))
-	if !defaultValue.CanAddr() {
-		return fmt.Errorf("Config %v should be addressable", config)
-	}
-
 	////////配置样本文件不存在，创建配置样本
 	fileSuffix := path.Ext(files[0])
 	filenameOnly := strings.TrimSuffix(files[0], fileSuffix)
@@ -105,6 +100,12 @@ func (configor *Configor) Load(config interface{}, files ...string) (err error) 
 		ioutil.WriteFile(examplefile, str.Bytes(), 0644)
 	}
 	/////////////
+
+	defaultValue := reflect.Indirect(reflect.ValueOf(config))
+	if !defaultValue.CanAddr() {
+		return fmt.Errorf("Config %v should be addressable", config)
+	}
+
 	err, _ = configor.load(config, false, files...)
 
 	if configor.Config.AutoReload {
